@@ -1,4 +1,4 @@
-jjugador = {x = 120, y = 68, spr = 1, velocidad = 2}
+jugador = {x = 120, y = 68, spr = 1, velocidad = 2}
 trabajos = {}
 robots = {}
 velocidad_robot = 1
