@@ -1,0 +1,99 @@
+jugador = {x = 120, y = 68, spr = 1, velocidad = 2}
+trabajos = {}
+robots = {}
+velocidad_robot = 1
+fin_juego = false
+puntuacion = 0
+tiempo_restante = 60
+nivel_dificultad = 4
+
+function iniciar()
+    trabajos = {}
+    robots = {}
+    
+    for i = 1, 5 do
+        table.insert(trabajos, {x = math.random(0, 240), y = math.random(0, 136), spr = 2})
+    end
+
+    local num_robots = 6 + nivel_dificultad
+    for i = 1, num_robots do
+        table.insert(robots, {x = math.random(0, 240), y = math.random(0, 136), spr = 3, dir = math.random(0, 3)})
+    end
+
+    velocidad_robot = 1 + nivel_dificultad * 0.5
+end
+
+iniciar()
+
+function actualizar()
+    if fin_juego then return end
+    
+    if btn(0) then jugador.y = jugador.y - jugador.velocidad end
+    if btn(1) then jugador.y = jugador.y + jugador.velocidad end
+    if btn(2) then jugador.x = jugador.x - jugador.velocidad end
+    if btn(3) then jugador.x = jugador.x + jugador.velocidad end
+
+    for i, trabajo in ipairs(trabajos) do
+        if jugador.x < trabajo.x + 8 and jugador.x + 8 > trabajo.x and jugador.y < trabajo.y + 8 and jugador.y + 8 > trabajo.y then
+            table.remove(trabajos, i)
+            puntuacion = puntuacion + 1
+            table.insert(trabajos, {x = math.random(0, 240), y = math.random(0, 136), spr = 2})
+        end
+    end
+
+    for _, robot in ipairs(robots) do
+        if robot.dir == 0 then robot.y = robot.y - velocidad_robot end
+        if robot.dir == 1 then robot.y = robot.y + velocidad_robot end
+        if robot.dir == 2 then robot.x = robot.x - velocidad_robot end
+        if robot.dir == 3 then robot.x = robot.x + velocidad_robot end
+        
+        if robot.x < 0 or robot.x > 240 or robot.y < 0 or robot.y > 136 then
+            robot.dir = math.random(0, 3)
+        end
+
+        if jugador.x < robot.x + 8 and jugador.x + 8 > robot.x and jugador.y < robot.y + 8 and jugador.y + 8 > robot.y then
+            fin_juego = true
+        end
+    end
+
+    tiempo_restante = tiempo_restante - 1/60
+    if tiempo_restante <= 0 then
+        fin_juego = true
+    end
+end
+
+function dibujar()
+    cls(13)
+    map()
+    
+    spr(jugador.spr, jugador.x, jugador.y)
+    
+    for _, trabajo in ipairs(trabajos) do
+        spr(trabajo.spr, trabajo.x, trabajo.y)
+    end
+    
+    for _, robot in ipairs(robots) do
+        spr(robot.spr, robot.x, robot.y)
+    end
+    
+    print("Ofertas: "..puntuacion, 5, 5, 12)
+    print("Tiempo: "..math.ceil(tiempo_restante), 5, 15, 12)
+    
+    if fin_juego then
+        print("Fin del juego...", 104, 68, 12)
+        print("Pulsa Z para reiniciar", 85, 78, 12)
+        if btn(4) then
+            jugador.x = 120
+            jugador.y = 68
+            puntuacion = 0
+            tiempo_restante = 60
+            fin_juego = false
+            iniciar()
+        end
+    end
+end
+
+function TIC()
+    actualizar()
+    dibujar()
+end
